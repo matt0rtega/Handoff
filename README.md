@@ -11,17 +11,37 @@
 
 ## Installation
 
-To install and use **Handoff**:
+To install and use **Handoff** for local development:
 
-1. Go to the [Figma Plugin Directory](https://www.figma.com/community/plugins).
-2. Search for **Handoff**.
-3. Click on **Install** to add the plugin to your Figma account.
+1. Clone this repository:
 
-Alternatively, you can clone this repository and build the plugin locally:
+   ```bash
+   git clone https://github.com/yourusername/handoff.git
+   cd handoff
+   ```
 
-```bash
-git clone https://github.com/matt0rtega/handoff.git
-```
+2. Install the dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Build the plugin:
+
+   ```bash
+   npm run build
+   ```
+
+4. To start development with live reloading:
+
+   ```bash
+   npm run watch
+   ```
+
+Once you've built the plugin, you can load it into Figma for testing:
+
+1. Open Figma, go to `Plugins > Development > New Plugin`.
+2. Choose **Click to choose a manifest.json** and select the `manifest.json` file from this project.
 
 ## Usage
 
