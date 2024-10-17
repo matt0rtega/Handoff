@@ -1,40 +1,60 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+# Handoff - Figma Plugin
 
-  https://www.figma.com/plugin-docs/plugin-quickstart-guide/
+**Handoff** is a Figma plugin designed to streamline the design-to-development process by creating a basic handoff sheet that iterates through variants for each property definition. This makes it easier to share design component variations with developers in a clear and organized manner.
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+## Features
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+- Automatically generates a handoff sheet for Figma components.
+- Lists variants for each property definition.
+- Simplifies the design-to-development communication.
+- Easy-to-use and time-saving tool for design teams.
 
-  https://nodejs.org/en/download/
+## Installation
 
-Next, install TypeScript using the command:
+To install and use **Handoff**:
 
-  npm install -g typescript
+1. Go to the [Figma Plugin Directory](https://www.figma.com/community/plugins).
+2. Search for **Handoff**.
+3. Click on **Install** to add the plugin to your Figma account.
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
+Alternatively, you can clone this repository and build the plugin locally:
 
-  npm install --save-dev @figma/plugin-typings
+```bash
+git clone https://github.com/matt0rtega/handoff.git
+```
 
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
+## Usage
 
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
+1. In your Figma file, select the components or variants you want to hand off.
+2. Open the **Handoff** plugin from the Figma plugin menu.
+3. **Handoff** will generate a basic handoff sheet, iterating through each variant property.
+4. Review or edit the sheet as needed before sharing it with developers.
 
-For more information, visit https://www.typescriptlang.org/
+### Example
 
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
+Here’s a quick example of how the generated handoff sheet might look:
 
-We recommend writing TypeScript code using Visual Studio code:
+- **Component**: Button
+  - **Property 1**: Size (Small, Medium, Large)
+  - **Property 2**: Color (Primary, Secondary, Tertiary)
+  - **Property 3**: State (Active, Disabled, Hover)
 
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
+The handoff sheet will iterate over these properties and list all possible combinations.
 
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+## Contributing
+
+Contributions are welcome! If you’d like to contribute:
+
+1. Fork the repository.
+2. Create a new feature branch: `git checkout -b feature/your-feature`.
+3. Commit your changes: `git commit -m 'Add some feature'`.
+4. Push to the branch: `git push origin feature/your-feature`.
+5. Submit a pull request.
+
+## Issues
+
+If you encounter any issues or have feature requests, feel free to [open an issue](https://github.com/yourusername/handoff/issues).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
