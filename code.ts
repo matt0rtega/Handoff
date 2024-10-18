@@ -8,7 +8,7 @@
 
 // This shows the HTML page in "ui.html".
 
-figma.showUI(__html__);
+figma.showUI(__html__, { width: 400, height: 400 });
 
 figma.variables.getLocalVariablesAsync().then((localVariables) => {
   console.log("Local Variables", localVariables);
@@ -31,29 +31,48 @@ function clone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function createHeader({ label, textColorVariable, docUrl }) {
-  const headerWrapper = figma.createFrame();
-  headerWrapper.layoutMode = "VERTICAL";
-  headerWrapper.counterAxisSizingMode = "AUTO";
-  headerWrapper.primaryAxisSizingMode = "AUTO";
-  headerWrapper.paddingLeft = 0;
-  headerWrapper.paddingRight = 0;
-  headerWrapper.paddingTop = 0;
-  headerWrapper.paddingBottom = 0;
-  headerWrapper.itemSpacing = 0;
-  headerWrapper.fills = [];
+function createRow(label: string, value: string) {
+  const row = figma.createFrame();
+  row.layoutMode = "HORIZONTAL";
+  row.counterAxisSizingMode = "AUTO";
+  row.primaryAxisSizingMode = "AUTO";
+  row.paddingLeft = 0;
+  row.paddingRight = 0;
+  row.paddingTop = 0;
+  row.paddingBottom = 0;
+  row.itemSpacing = 16;
+  row.fills = [];
 
-  const headerFrame = figma.createFrame();
-  headerFrame.layoutMode = "HORIZONTAL";
-  headerFrame.counterAxisSizingMode = "AUTO";
-  headerFrame.primaryAxisSizingMode = "AUTO";
-  headerFrame.paddingLeft = 48;
-  headerFrame.paddingRight = 48;
-  headerFrame.paddingTop = 48;
-  headerFrame.paddingBottom = 48;
-  headerFrame.itemSpacing = 16;
-  headerFrame.fills = [];
+  const labelText = figma.createText();
+  labelText.characters = label + ":";
+  labelText.fontSize = 14;
+  labelText.fontName = { family: "Inter", style: "Bold" };
 
+  labelText.fills = [
+    {
+      type: "SOLID",
+      color: { r: 1, g: 1, b: 1 },
+    },
+  ];
+
+  const valueText = figma.createText();
+  valueText.characters = value;
+  valueText.fontSize = 14;
+  valueText.fontName = { family: "Inter", style: "Regular" };
+  valueText.fills = [
+    {
+      type: "SOLID",
+      color: { r: 1, g: 1, b: 1 },
+    },
+  ];
+
+  row.appendChild(labelText);
+  row.appendChild(valueText);
+
+  return { row, labelText, valueText };
+}
+
+function createHeaderCaption(label: string) {
   const createHeaderHeader = figma.createFrame();
   createHeaderHeader.layoutMode = "HORIZONTAL";
   createHeaderHeader.counterAxisSizingMode = "AUTO";
@@ -67,24 +86,25 @@ function createHeader({ label, textColorVariable, docUrl }) {
   createHeaderHeader.name = "Header Details";
 
   const createHeaderHeaderText = figma.createText();
-  createHeaderHeaderText.characters = "Foundation Redesign 2024";
+  createHeaderHeaderText.characters = label;
   createHeaderHeaderText.fontSize = 14;
   createHeaderHeaderText.fontName = {
-    family: "Builder Mono",
+    family: "Inter",
     style: "Regular",
   };
-  const headerTextFills = clone(createHeaderHeaderText.fills);
-  headerTextFills[0] = figma.variables.setBoundVariableForPaint(
-    headerTextFills[0],
-    "color",
-    textColorVariable
-  );
-  createHeaderHeaderText.fills = headerTextFills;
+  createHeaderHeaderText.fills = [
+    {
+      type: "SOLID",
+      color: { r: 1, g: 1, b: 1 },
+    },
+  ];
 
   createHeaderHeader.appendChild(createHeaderHeaderText);
-  headerWrapper.appendChild(createHeaderHeader);
 
-  headerFrame.primaryAxisAlignItems = "SPACE_BETWEEN";
+  return createHeaderHeader;
+}
+
+function createHeaderDetails({ task, lead, documentationLink, jiraUrl }) {
   const details = figma.createFrame();
   details.layoutMode = "VERTICAL";
   details.counterAxisSizingMode = "AUTO";
@@ -93,88 +113,65 @@ function createHeader({ label, textColorVariable, docUrl }) {
   details.paddingRight = 16;
   details.paddingTop = 16;
   details.paddingBottom = 16;
-  details.itemSpacing = 0;
+  details.itemSpacing = 4;
   details.fills = [];
 
-  function createRow(label: string, value: string) {
-    const row = figma.createFrame();
-    row.layoutMode = "HORIZONTAL";
-    row.counterAxisSizingMode = "AUTO";
-    row.primaryAxisSizingMode = "AUTO";
-    row.paddingLeft = 0;
-    row.paddingRight = 0;
-    row.paddingTop = 0;
-    row.paddingBottom = 0;
-    row.itemSpacing = 16;
-    row.fills = [];
-
-    const labelText = figma.createText();
-    labelText.characters = label + ":";
-    labelText.fontSize = 14;
-    labelText.fontName = { family: "Builder Mono", style: "Bold" };
-    const textFills = clone(labelText.fills);
-    textFills[0] = figma.variables.setBoundVariableForPaint(
-      textFills[0],
-      "color",
-      textColorVariable
-    );
-    labelText.fills = textFills;
-
-    const valueText = figma.createText();
-    valueText.characters = value;
-    valueText.fontSize = 14;
-    valueText.fontName = { family: "Builder Mono", style: "Regular" };
-    const valueFills = clone(valueText.fills);
-    valueFills[0] = figma.variables.setBoundVariableForPaint(
-      valueFills[0],
-      "color",
-      textColorVariable
-    );
-    valueText.fills = valueFills;
-
-    row.appendChild(labelText);
-    row.appendChild(valueText);
-
-    return row;
+  if (task) {
+    const design = createRow("🛠️ Task", task);
+    details.appendChild(design.row);
   }
 
-  const design = createRow("Design", "Foundation Redesign 2024");
-  const code = createRow("Design Lead", "Matthew Ortega");
-  const jira = createRow("Jira", "UI-Blox 1143");
+  if (lead) {
+    const code = createRow("👨‍💻 Design Lead", lead);
+    details.appendChild(code.row);
+  }
+
+  if (jiraUrl) {
+    // use regex to get ticket name from JIRA url
+    const jiraTicket = jiraUrl.match(/[A-Z]+-\d+/)?.[0];
+    const jira = createRow("🔗 Jira", jiraTicket);
+
+    jira.valueText.hyperlink = {
+      type: "URL",
+      value: jiraUrl,
+    };
+
+    details.appendChild(jira.row);
+  }
 
   const link = figma.createText();
-  link.characters = "Design Documentation";
+  link.characters = "🔗 Design Documentation";
   link.fontSize = 14;
-  link.fontName = { family: "Builder Mono", style: "Regular" };
-  const linkFills = clone(link.fills);
-  linkFills[0] = figma.variables.setBoundVariableForPaint(
-    linkFills[0],
-    "color",
-    textColorVariable
-  );
-  link.fills = linkFills;
+  link.fontName = { family: "Inter", style: "Regular" };
+  if (documentationLink) {
+    link.hyperlink = {
+      type: "URL",
+      value: documentationLink,
+    };
+  }
+  link.fills = [
+    {
+      type: "SOLID",
+      color: { r: 1, g: 1, b: 1 },
+    },
+  ];
 
-  details.appendChild(design);
-  details.appendChild(code);
-  details.appendChild(jira);
+  //@ts-ignore
   details.appendChild(link);
-  headerFrame.appendChild(label);
-  headerFrame.appendChild(details);
 
-  headerWrapper.appendChild(headerFrame);
-
-  return headerWrapper;
+  return details;
 }
 
-const doTheThing = async () => {
+const generateHandoffSpec = async ({ message, jiraUrl }) => {
   const variables = await getVariables({
     Surface_0: "1f72d46302681ea8675ac6507e562463997e3aa2",
     ContentDefault: "73c1a96f15949c3e8e70d180031dcb8920fbecb3",
     // Add more variables here as needed
   });
+
+  console.log(message);
   // @ts-ignore
   console.log("Surface_0 variable:", variables.Surface_0);
-
   console.log("Collection Variables", variables);
 
   await figma.loadFontAsync({
@@ -213,6 +210,7 @@ const doTheThing = async () => {
   if (node && node.type === "COMPONENT_SET") {
     console.log("Selected node is a component set:", node);
 
+    console.log("Links", node.documentationLinks);
     const specFrame = figma.createFrame();
     specFrame.name = `${node.name} Handoff`;
     specFrame.x = 0;
@@ -221,17 +219,52 @@ const doTheThing = async () => {
     specFrame.counterAxisSizingMode = "AUTO";
     specFrame.primaryAxisSizingMode = "AUTO";
 
+    const headerWrapper = figma.createFrame();
+    headerWrapper.layoutMode = "VERTICAL";
+    headerWrapper.counterAxisSizingMode = "AUTO";
+    headerWrapper.primaryAxisSizingMode = "AUTO";
+    headerWrapper.paddingLeft = 0;
+    headerWrapper.paddingRight = 0;
+    headerWrapper.paddingTop = 0;
+    headerWrapper.paddingBottom = 0;
+    headerWrapper.itemSpacing = 0;
+    headerWrapper.fills = [];
+    headerWrapper.strokeBottomWeight = 1;
+    headerWrapper.strokes = [
+      {
+        type: "SOLID",
+        color: { r: 44 / 255, g: 44 / 255, b: 44 / 255 },
+      },
+    ];
+    // bottom border for headerWrapper
+
+    const headerFrame = figma.createFrame();
+    headerFrame.layoutMode = "HORIZONTAL";
+    headerFrame.counterAxisSizingMode = "AUTO";
+    headerFrame.primaryAxisSizingMode = "AUTO";
+    headerFrame.paddingLeft = 48;
+    headerFrame.paddingRight = 48;
+    headerFrame.paddingTop = 48;
+    headerFrame.paddingBottom = 48;
+    headerFrame.itemSpacing = 16;
+    headerFrame.fills = [];
+
     const label = figma.createText();
     label.characters = node.name;
     label.fontSize = 48;
-    label.fontName = { family: "Builder Extended", style: "Bold" };
+    label.fontName = { family: "Inter", style: "Bold" };
     const textFills = clone(label.fills);
     textFills[0] = figma.variables.setBoundVariableForPaint(
       textFills[0],
       "color",
       variables.ContentDefault
     );
-    label.fills = textFills;
+    label.fills = [
+      {
+        type: "SOLID",
+        color: { r: 1, g: 1, b: 1 },
+      },
+    ];
 
     const specFills = clone(specFrame.fills);
     specFills[0] = figma.variables.setBoundVariableForPaint(
@@ -241,18 +274,34 @@ const doTheThing = async () => {
     );
     specFrame.fills = specFills;
 
-    const headerFrame = createHeader({
-      label,
-      textColorVariable: variables.ContentDefault,
-      docUrl:
-        "https://www.figma.com/design/1234567890/Foundation-Redesign-2024",
+    const headerDetails = createHeaderDetails({
+      task: message.designInitiative,
+      lead: message.designLead,
+      documentationLink: node.documentationLinks[0].uri ?? null,
+      jiraUrl: jiraUrl ?? null,
     });
 
-    specFrame.appendChild(headerFrame);
+    const headerCaption = createHeaderCaption("FDK Version 1.0");
+    headerCaption.strokeBottomWeight = 1;
+    headerCaption.strokes = [
+      {
+        type: "SOLID",
+        color: { r: 44 / 255, g: 44 / 255, b: 44 / 255 },
+      },
+    ];
+
+    headerWrapper.appendChild(headerCaption);
+    headerFrame.appendChild(label);
+    headerFrame.appendChild(headerDetails);
+    headerWrapper.appendChild(headerFrame);
+
+    headerCaption.layoutSizingHorizontal = "FILL";
+
+    specFrame.appendChild(headerWrapper);
 
     // Get all variant properties
     const propertyDefinitions = node.componentPropertyDefinitions;
-    console.log("I am the definitions", propertyDefinitions);
+    console.log("Property Definitions: ", propertyDefinitions);
 
     const contentFrame = figma.createFrame();
     contentFrame.name = "Content Frame";
@@ -267,27 +316,29 @@ const doTheThing = async () => {
     contentFrame.fills = [];
 
     const darkModeFrame = figma.createFrame();
+    darkModeFrame.name = "Mode Frame";
     darkModeFrame.layoutMode = "VERTICAL";
     darkModeFrame.counterAxisSizingMode = "AUTO";
     darkModeFrame.primaryAxisSizingMode = "AUTO";
-    darkModeFrame.paddingLeft = 16;
-    darkModeFrame.paddingRight = 16;
-    darkModeFrame.paddingTop = 16;
-    darkModeFrame.paddingBottom = 16;
-    darkModeFrame.itemSpacing = 16;
+    darkModeFrame.paddingLeft = 40;
+    darkModeFrame.paddingRight = 40;
+    darkModeFrame.paddingTop = 40;
+    darkModeFrame.paddingBottom = 40;
+    darkModeFrame.itemSpacing = 40;
     darkModeFrame.fills = [];
     darkModeFrame.name = "Dark Mode";
     darkModeFrame.fills = specFills;
 
     const lightModeFrame = figma.createFrame();
+    lightModeFrame.name = "Mode Frame";
     lightModeFrame.layoutMode = "VERTICAL";
     lightModeFrame.counterAxisSizingMode = "AUTO";
     lightModeFrame.primaryAxisSizingMode = "AUTO";
-    lightModeFrame.paddingLeft = 16;
-    lightModeFrame.paddingRight = 16;
-    lightModeFrame.paddingTop = 16;
-    lightModeFrame.paddingBottom = 16;
-    lightModeFrame.itemSpacing = 16;
+    lightModeFrame.paddingLeft = 40;
+    lightModeFrame.paddingRight = 40;
+    lightModeFrame.paddingTop = 40;
+    lightModeFrame.paddingBottom = 40;
+    lightModeFrame.itemSpacing = 40;
     lightModeFrame.fills = [];
     lightModeFrame.name = "Light Mode";
     lightModeFrame.fills = specFills;
@@ -306,28 +357,34 @@ const doTheThing = async () => {
       propertyFrame.layoutMode = "VERTICAL";
       propertyFrame.counterAxisSizingMode = "AUTO";
       propertyFrame.primaryAxisSizingMode = "AUTO";
-      propertyFrame.paddingLeft = 16;
-      propertyFrame.paddingRight = 16;
-      propertyFrame.paddingTop = 16;
-      propertyFrame.paddingBottom = 16;
+      propertyFrame.paddingLeft = 0;
+      propertyFrame.paddingRight = 0;
+      propertyFrame.paddingTop = 0;
+      propertyFrame.paddingBottom = 0;
       propertyFrame.itemSpacing = 16;
       propertyFrame.fills = [];
 
       const propertyFrameText = figma.createText();
       propertyFrameText.characters = key;
       propertyFrameText.fontSize = 16;
-      propertyFrameText.fontName = { family: "Builder Mono", style: "Regular" };
-      propertyFrameText.fills = textFills;
+      propertyFrameText.fontName = { family: "Inter", style: "Regular" };
+      propertyFrameText.fills = [
+        {
+          type: "SOLID",
+          color: { r: 1, g: 1, b: 1 },
+        },
+      ];
       propertyFrame.appendChild(propertyFrameText);
 
       const propertyFrameRow = figma.createFrame();
+      propertyFrameRow.name = "Property Row";
       propertyFrameRow.layoutMode = "HORIZONTAL";
       propertyFrameRow.counterAxisSizingMode = "AUTO";
       propertyFrameRow.primaryAxisSizingMode = "AUTO";
-      propertyFrameRow.paddingLeft = 16;
-      propertyFrameRow.paddingRight = 16;
-      propertyFrameRow.paddingTop = 16;
-      propertyFrameRow.paddingBottom = 16;
+      propertyFrameRow.paddingLeft = 0;
+      propertyFrameRow.paddingRight = 0;
+      propertyFrameRow.paddingTop = 0;
+      propertyFrameRow.paddingBottom = 0;
       propertyFrameRow.itemSpacing = 16;
       propertyFrameRow.fills = [];
 
@@ -359,15 +416,10 @@ const doTheThing = async () => {
         matchingVariant.forEach((variant) => {
           console.log("Variant Properties", variant.variantProperties);
 
-          // if (interactable) {
-          //   console.log("Interactable", interactable);
-          //   // remove the interactable from the variant
-          //   interactable.remove();
-          // }
-
           const variantProperty = variant.variantProperties?.[key];
           console.log("Variant Property", variantProperty);
           const variantFrame = figma.createFrame();
+          variantFrame.name = "Variant";
           variantFrame.layoutMode = "VERTICAL";
           variantFrame.counterAxisSizingMode = "AUTO";
           variantFrame.primaryAxisSizingMode = "AUTO";
@@ -383,21 +435,15 @@ const doTheThing = async () => {
           const text = figma.createText();
           text.characters = `${key}=${variantProperty}`;
           text.fontSize = 14;
-          text.fontName = { family: "Builder Mono", style: "Regular" };
-          text.fills = textFills;
-          text.opacity = 0.7;
+          text.fontName = { family: "Inter", style: "Regular" };
+          text.fills = [
+            {
+              type: "SOLID",
+              color: { r: 1, g: 1, b: 1 },
+            },
+          ];
 
           const instance = variant.createInstance();
-          // const interactable = instance.findOne(
-          //   (child) => child.name === "Interactable"
-          // );
-
-          // if (interactable) {
-          //   console.log("Interactable", interactable);
-          //   // remove the interactable from the variant
-          //   interactable.remove();
-          //   instance.hide
-          // }
 
           variantFrame.appendChild(instance);
 
@@ -418,7 +464,23 @@ const doTheThing = async () => {
     contentFrame.appendChild(darkModeFrame);
     contentFrame.appendChild(lightModeFrame);
     specFrame.appendChild(contentFrame);
+
+    // headerFrame.layoutSizingHorizontal = "FILL";
+    // headerFrame.name = "Header";
+
+    headerWrapper.layoutSizingHorizontal = "FILL";
+    headerFrame.layoutSizingHorizontal = "FILL";
+    headerFrame.primaryAxisAlignItems = "SPACE_BETWEEN";
+    headerFrame.counterAxisAlignItems = "CENTER";
   }
 };
 
-figma.on("run", doTheThing);
+// figma.on("run", generateHandoffSpec);
+
+figma.ui.on("message", (message) => {
+  if (message.type === "create-handoff-spec") {
+    console.log("Received message:", message);
+    console.log("Received message:", message.jiraUrl);
+    generateHandoffSpec({ message, jiraUrl: message.jiraUrl });
+  }
+});
